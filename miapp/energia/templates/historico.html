@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Energía</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+    <h2 class="text-center">Histórico de Energía</h2>
+
+    <!-- Selector de rango de tiempo -->
+    <div class="container">
+        <label for="rango">Seleccionar Rango:</label>
+        <select id="rango">
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+        </select>
+        <button id="exportar">Exportar a Excel</button>
+    </div>
+
+    <canvas id="grafico"></canvas>
+
+    <script>
+        function cargarDatos(rango) {
+            fetch(`/api/historico/?rango=${rango}`)
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(d => d.fecha);
+                    const voltajeFase1 = data.map(d => d.voltaje_fase1);
+                    const voltajeFase2 = data.map(d => d.voltaje_fase2);
+                    const voltajeFase3 = data.map(d => d.voltaje_fase3);
+                    const corrienteFase1 = data.map(d => d.corriente_fase1);
+                    const corrienteFase2 = data.map(d => d.corriente_fase2);
+                    const corrienteFase3 = data.map(d => d.corriente_fase3);
+
+                    const ctx = document.getElementById('grafico').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: 'Voltaje Fase 1', data: voltajeFase1, borderColor: 'blue', fill: false },
+                                { label: 'Voltaje Fase 2', data: voltajeFase2, borderColor: 'red', fill: false },
+                                { label: 'Voltaje Fase 3', data: voltajeFase3, borderColor: 'green', fill: false },
+                                { label: 'Corriente Fase 1', data: corrienteFase1, borderColor: 'purple', fill: false },
+                                { label: 'Corriente Fase 2', data: corrienteFase2, borderColor: 'orange', fill: false },
+                                { label: 'Corriente Fase 3', data: corrienteFase3, borderColor: 'brown', fill: false },
+                            ]
+                        }
+                    });
+                });
+        }
+
+        document.getElementById("rango").addEventListener("change", function() {
+            cargarDatos(this.value);
+        });
+
+        document.getElementById("exportar").addEventListener("click", function() {
+            window.location.href = `/api/exportar_excel/?rango=${document.getElementById("rango").value}`;
+        });
+
+        cargarDatos("diario");
+    </script>
+
+</body>
+</html>
