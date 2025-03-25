@@ -14,7 +14,7 @@ from django.http import HttpResponse, JsonResponse
 from miapp.energia.models import RegistroEnergia
 
 # Configuración de conexión Modbus
-MODBUS_HOST = "192.168.1.100"
+MODBUS_HOST = "multimetersolin.dyndns.org"
 MODBUS_PORT = 502
 MODBUS_SLAVE_ID = 5
 
