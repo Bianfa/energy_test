@@ -21,9 +21,30 @@
             font-size: 1.5rem;
             color: #007bff;
         }
-        .chart-section {
-            margin-top: 2rem;
+    .chart-section {
+        margin-top: 40px;
+        width: 100%;
+    }
+
+    .chart-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    canvas#grafico {
+        width: 100% !important;
+        max-width: 100%;
+        height: auto !important;
+        aspect-ratio: 16 / 9; /* Mantener relación */
+        min-height: 300px;     /* Asegura altura mínima */
+    }
+
+    @media (max-width: 576px) {
+        canvas#grafico {
+            aspect-ratio: 4 / 3;
+            min-height: 250px;
         }
+    }
         .controls {
             display: flex;
             justify-content: space-between;
