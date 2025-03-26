@@ -58,7 +58,7 @@ def obtener_datos_modbus(request):
         "Potencia Activa Total (kW)": read_register(4112, 2, 1000),
         "Potencia Reactiva Total (kVAR)": read_register(4114, 2, 1000),
         "Potencia Aparente Total (kVA)": read_register(4116, 2, 1000),
-        "Energía Activa Total (kWh)": read_register(4688, 2, 100),
+        "Energía Activa Total (kWh)": read_register(4688, 2, 10),
         "Energía Reactiva Total (kVARh)": read_register(4690, 2, 100),
     }
 
