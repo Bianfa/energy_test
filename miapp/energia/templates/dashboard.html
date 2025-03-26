@@ -21,29 +21,26 @@
             font-size: 1.5rem;
             color: #007bff;
         }
-    .chart-section {
-        margin-top: 40px;
-        width: 100%;
-    }
+      .chart-section {
+    margin-top: 40px;
+  }
 
-    .chart-container {
-        width: 100%;
-        overflow-x: auto;
-    }
+  .chart-container {
+    width: 100%;
+    overflow-x: auto;
+  }
 
+  canvas#grafico {
+    width: 100% !important;
+    height: 300px !important;
+    max-width: 100%;
+  }
+
+  @media (max-width: 768px) {
     canvas#grafico {
-        width: 100% !important;
-        max-width: 100%;
-        height: auto !important;
-        aspect-ratio: 16 / 9; /* Mantener relación */
-        min-height: 300px;     /* Asegura altura mínima */
+      height: 250px !important;
     }
-
-    @media (max-width: 576px) {
-        canvas#grafico {
-            aspect-ratio: 4 / 3;
-            min-height: 250px;
-        }
+  
     }
         .controls {
             display: flex;
