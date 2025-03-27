@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -22,7 +21,24 @@
             color: #007bff;
         }
         .chart-section {
-            margin-top: 2rem;
+            margin-top: 40px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            min-height: 300px;
+            max-height: 400px;
+        }
+        #grafico {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                min-height: 250px;
+                max-height: 350px;
+            }
         }
         .controls {
             display: flex;
@@ -31,6 +47,29 @@
             gap: 1rem;
             margin-bottom: 1rem;
         }
+        .fase-1 {
+    background-color: #007bff; /* Azul */
+    color: #ffffff;
+}
+
+.fase-2 {
+    background-color: #28a745; /* Verde */
+    color: #ffffff;
+}
+
+.fase-3 {
+    background-color: #ffc107; /* Amarillo */
+    color: #ffffff;
+}
+
+        /* Overriding para valores dentro de tarjetas con fondo de color */
+.card.fase-1 .value,
+.card.fase-2 .value,
+.card.fase-3 .value {
+    color: #ffffff !important; /* Color blanco para los valores */
+}
+
+
     </style>
 </head>
 <body>
@@ -46,7 +85,107 @@
         </div>
     </div>
 
-    <div class="row g-3 mb-3">
+
+
+<!-- Tarjetas de variables ordenadas -->
+<div class="row g-3 mt-4" id="tarjetas">
+    <!-- Energía -->
+    <div class="col-md-6">
+        <div class="card text-center p-3">
+            <div class="card-title">Energía Activa Acumulada</div>
+            <div class="value" id="energia_activa">-- kWh</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center p-3">
+            <div class="card-title">Energía Reactiva Acumulada</div>
+            <div class="value" id="energia_reactiva">-- kVARh</div>
+        </div>
+    </div>
+
+    <!-- Potencia -->
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <div class="card-title">Potencia Activa Total</div>
+            <div class="value" id="potencia_activa">-- kW</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <div class="card-title">Potencia Reactiva Total</div>
+            <div class="value" id="potencia_reactiva">-- kVAR</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <div class="card-title">Potencia Aparente Total</div>
+            <div class="value" id="potencia_aparente">-- kVA</div>
+        </div>
+    </div>
+
+<!-- Tarjetas Voltaje -->
+<div class="col-md-4">
+    <div class="card text-center fase-1 p-3">
+        <div class="card-title">Voltaje Fase 1</div>
+        <div class="value" id="voltaje1">-- V</div>
+
+        <div class="mt-1 small">
+          🔺<span id="voltaje1_max">--</span> V | 🔻<span id="voltaje1_min">--</span> V
+        </div>
+
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="card text-center fase-2 p-3">
+        <div class="card-title">Voltaje Fase 2</div>
+        <div class="value" id="voltaje2">-- V</div>
+          <div class="mt-1 small">
+          🔺<span id="voltaje2_max">--</span> V | 🔻<span id="voltaje2_min">--</span> V
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="card text-center fase-3 p-3">
+        <div class="card-title">Voltaje Fase 3</div>
+        <div class="value" id="voltaje3">-- V</div>
+          <div class="mt-1 small">
+          🔺<span id="voltaje3_max">--</span> V | 🔻<span id="voltaje3_min">--</span> V
+        </div>
+    </div>
+</div>
+
+<!-- Tarjetas Corriente -->
+<div class="col-md-4">
+    <div class="card text-center fase-1 p-3">
+        <div class="card-title">Corriente Fase 1</div>
+        <div class="value" id="corriente1">-- A</div>
+        <div class="mt-1 small">
+            🔺<span id="corriente1_max">--</span> A | 🔻<span id="corriente1_min">--</span> A
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="card text-center fase-2 p-3">
+        <div class="card-title">Corriente Fase 2</div>
+        <div class="value" id="corriente2">-- A</div>
+        <div class="mt-1 small">
+            🔺<span id="corriente2_max">--</span> A | 🔻<span id="corriente2_min">--</span> A
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="card text-center fase-3 p-3">
+        <div class="card-title">Corriente Fase 3</div>
+        <div class="value" id="corriente3">-- A</div>
+        <div class="mt-1 small">
+            🔺<span id="corriente3_max">--</span> A | 🔻<span id="corriente3_min">--</span> A
+        </div>
+    </div>
+</div>
+
+
+
+<div class="row g-3 mb-3">
         <div class="col-md-6">
             <label class="form-label">📈 Grupo de variables:</label>
             <select id="grupo" class="form-select">
@@ -65,103 +204,43 @@
         </div>
     </div>
 
-    <div class="chart-section mb-4">
-        <div class="card p-3">
+    <div class="chart-section">
+        <div class="chart-container card p-4">
             <canvas id="grafico"></canvas>
-            <p class="text-center mt-2">🔺 Máximo: <span id="valorMax">--</span> | 🔻 Mínimo: <span id="valorMin">--</span></p>
         </div>
     </div>
-
-    <div class="row g-3" id="tarjetas">
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Voltaje Fase 1</div>
-                <div class="value" id="voltaje1">-- V</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Voltaje Fase 2</div>
-                <div class="value" id="voltaje2">-- V</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Voltaje Fase 3</div>
-                <div class="value" id="voltaje3">-- V</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Corriente Fase 1</div>
-                <div class="value" id="corriente1">-- A</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Corriente Fase 2</div>
-                <div class="value" id="corriente2">-- A</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Corriente Fase 3</div>
-                <div class="value" id="corriente3">-- A</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Potencia Activa Total</div>
-                <div class="value" id="potencia_activa">-- kW</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Potencia Reactiva Total</div>
-                <div class="value" id="potencia_reactiva">-- kVAR</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <div class="card-title">Potencia Aparente Total</div>
-                <div class="value" id="potencia_aparente">-- kVA</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card text-center p-3">
-                <div class="card-title">Energía Activa Acumulada</div>
-                <div class="value" id="energia_activa">-- kWh</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card text-center p-3">
-                <div class="card-title">Energía Reactiva Acumulada</div>
-                <div class="value" id="energia_reactiva">-- kVARh</div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     let chart;
 
-    function actualizarDatos() {
-        fetch("/api/modbus/")
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("voltaje1").innerText = `${data["Voltaje Fase 1 (V)"] ?? "--"} V`;
-                document.getElementById("voltaje2").innerText = `${data["Voltaje Fase 2 (V)"] ?? "--"} V`;
-                document.getElementById("voltaje3").innerText = `${data["Voltaje Fase 3 (V)"] ?? "--"} V`;
-                document.getElementById("corriente1").innerText = `${data["Corriente Fase 1 (A)"] ?? "--"} A`;
-                document.getElementById("corriente2").innerText = `${data["Corriente Fase 2 (A)"] ?? "--"} A`;
-                document.getElementById("corriente3").innerText = `${data["Corriente Fase 3 (A)"] ?? "--"} A`;
-                document.getElementById("potencia_activa").innerText = `${data["Potencia Activa Total (kW)"] ?? "--"} kW`;
-                document.getElementById("potencia_reactiva").innerText = `${data["Potencia Reactiva Total (kVAR)"] ?? "--"} kVAR`;
-                document.getElementById("potencia_aparente").innerText = `${data["Potencia Aparente Total (kVA)"] ?? "--"} kVA`;
-                document.getElementById("energia_activa").innerText = `${data["Energía Activa Total (kWh)"] ?? "--"} kWh`;
-                document.getElementById("energia_reactiva").innerText = `${data["Energía Reactiva Total (kVARh)"] ?? "--"} kVARh`;
-            });
-    }
+function actualizarDatos() {
+    fetch("/api/modbus/")
+        .then(res => res.json())
+        .then(data => {
+            // Voltajes
+            document.getElementById("voltaje1").innerText = `${data["Voltaje Fase 1 (V)"] ?? "--"} V`;
+
+
+            document.getElementById("voltaje2").innerText = `${data["Voltaje Fase 2 (V)"] ?? "--"} V`;
+
+
+            document.getElementById("voltaje3").innerText = `${data["Voltaje Fase 3 (V)"] ?? "--"} V`;
+
+
+            // Corrientes
+            document.getElementById("corriente1").innerText = `${data["Corriente Fase 1 (A)"] ?? "--"} A`;
+            document.getElementById("corriente2").innerText = `${data["Corriente Fase 2 (A)"] ?? "--"} A`;
+            document.getElementById("corriente3").innerText = `${data["Corriente Fase 3 (A)"] ?? "--"} A`;
+
+            // Potencias
+            document.getElementById("potencia_activa").innerText = `${data["Potencia Activa Total (kW)"] ?? "--"} kW`;
+            document.getElementById("potencia_reactiva").innerText = `${data["Potencia Reactiva Total (kVAR)"] ?? "--"} kVAR`;
+            document.getElementById("potencia_aparente").innerText = `${data["Potencia Aparente Total (kVA)"] ?? "--"} kVA`;
+
+            // Energías
+            document.getElementById("energia_activa").innerText = `${data["Energía Activa Total (kWh)"] ?? "--"} kWh`;
+            document.getElementById("energia_reactiva").innerText = `${data["Energía Reactiva Total (kVARh)"] ?? "--"} kVARh`;
+        });
+}
 
     function actualizarGrafico() {
         const grupo = document.getElementById("grupo").value;
@@ -172,7 +251,6 @@
             .then(data => {
                 const fechas = data.map(d => d.fecha);
                 const datasets = [];
-
                 const grupos = {
                     voltaje: ["voltaje_fase1", "voltaje_fase2", "voltaje_fase3"],
                     corriente: ["corriente_fase1", "corriente_fase2", "corriente_fase3"],
@@ -195,11 +273,31 @@
                     });
                 });
 
-                const max = Math.max(...allValues).toFixed(2);
-                const min = Math.min(...allValues).toFixed(2);
-                document.getElementById("valorMax").innerText = max;
-                document.getElementById("valorMin").innerText = min;
+                // 🔄 Actualizar tarjetas de voltaje
+                const v1 = data.map(d => d.voltaje_fase1);
+                const v2 = data.map(d => d.voltaje_fase2);
+                const v3 = data.map(d => d.voltaje_fase3);
 
+                document.getElementById("voltaje1_max").innerText = Math.max(...v1).toFixed(2);
+                document.getElementById("voltaje1_min").innerText = Math.min(...v1).toFixed(2);
+                document.getElementById("voltaje2_max").innerText = Math.max(...v2).toFixed(2);
+                document.getElementById("voltaje2_min").innerText = Math.min(...v2).toFixed(2);
+                document.getElementById("voltaje3_max").innerText = Math.max(...v3).toFixed(2);
+                document.getElementById("voltaje3_min").innerText = Math.min(...v3).toFixed(2);
+
+                // 🔄 Actualizar tarjetas de corriente
+                const c1 = data.map(d => d.corriente_fase1);
+                const c2 = data.map(d => d.corriente_fase2);
+                const c3 = data.map(d => d.corriente_fase3);
+
+                document.getElementById("corriente1_max").innerText = Math.max(...c1).toFixed(2);
+                document.getElementById("corriente1_min").innerText = Math.min(...c1).toFixed(2);
+                document.getElementById("corriente2_max").innerText = Math.max(...c2).toFixed(2);
+                document.getElementById("corriente2_min").innerText = Math.min(...c2).toFixed(2);
+                document.getElementById("corriente3_max").innerText = Math.max(...c3).toFixed(2);
+                document.getElementById("corriente3_min").innerText = Math.min(...c3).toFixed(2);
+
+                // 🎨 Actualizar gráfico
                 if (chart) chart.destroy();
                 const ctx = document.getElementById("grafico").getContext("2d");
                 chart = new Chart(ctx, {
@@ -210,6 +308,7 @@
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         scales: {
                             y: { beginAtZero: false },
                             x: { ticks: { maxTicksLimit: 10 } }
@@ -218,7 +317,6 @@
                 });
             });
     }
-
     function exportarExcel() {
         const rango = document.getElementById("rango").value;
         window.location.href = `/api/exportar_excel/?rango=${rango}`;

@@ -1,6 +1,10 @@
 import json
+import calendar
 from datetime import datetime, timedelta
+from io import BytesIO
 
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.workbook import Workbook
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from pymodbus.client import ModbusTcpClient
@@ -12,7 +16,10 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
 from miapp.energia.models import RegistroEnergia
-
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.drawing.image import Image
 # Configuración de conexión Modbus
 MODBUS_HOST = "multimetersolin.dyndns.org"
 MODBUS_PORT = 502
@@ -58,8 +65,8 @@ def obtener_datos_modbus(request):
         "Potencia Activa Total (kW)": read_register(4112, 2, 1000),
         "Potencia Reactiva Total (kVAR)": read_register(4114, 2, 1000),
         "Potencia Aparente Total (kVA)": read_register(4116, 2, 1000),
-        "Energía Activa Total (kWh)": read_register(4688, 2, 100),
-        "Energía Reactiva Total (kVARh)": read_register(4690, 2, 100),
+        "Energía Activa Total (kWh)": read_register(4688, 2, 10),
+        "Energía Reactiva Total (kVARh)": read_register(4690, 2, 10),
     }
 
     # Guardar en la base de datos
@@ -92,14 +99,23 @@ def obtener_historico(request):
 
     if rango == "diario":
         fecha_inicio = fecha_hoy - timedelta(days=1)
+        fecha_fin = fecha_hoy
     elif rango == "semanal":
         fecha_inicio = fecha_hoy - timedelta(weeks=1)
+        fecha_fin = fecha_hoy
     elif rango == "mensual":
-        fecha_inicio = fecha_hoy - timedelta(days=30)
+        # Primer y último día del mes actual
+        inicio_mes = datetime(fecha_hoy.year, fecha_hoy.month, 1)
+        ultimo_dia = calendar.monthrange(fecha_hoy.year, fecha_hoy.month)[1]
+        fin_mes = datetime(fecha_hoy.year, fecha_hoy.month, ultimo_dia, 23, 59, 59)
+        fecha_inicio = inicio_mes
+        fecha_fin = fin_mes
     else:
         fecha_inicio = fecha_hoy - timedelta(days=1)
+        fecha_fin = fecha_hoy
 
-    registros = RegistroEnergia.objects.filter(timestamp__gte=fecha_inicio).order_by('timestamp')
+    registros = RegistroEnergia.objects.filter(timestamp__range=(fecha_inicio, fecha_fin)).order_by('timestamp')
+
     data = [
         {
             "fecha": reg.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
@@ -113,11 +129,13 @@ def obtener_historico(request):
             "potencia_reactiva": reg.potencia_reactiva,
             "potencia_aparente": reg.potencia_aparente,
             "energia_activa": reg.energia_activa,
-            "energia_reactiva": reg.energia_reactiva,
+            "energia_reactiva": reg.energia_reactiva
         }
         for reg in registros
     ]
+
     return JsonResponse(data, safe=False)
+
 
 def exportar_excel(request):
     rango = request.GET.get('rango', 'diario')
@@ -134,25 +152,61 @@ def exportar_excel(request):
 
     registros = RegistroEnergia.objects.filter(timestamp__gte=fecha_inicio).order_by('timestamp')
 
-    df = pd.DataFrame([
-        {
-            "Fecha": reg.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "Voltaje Fase 1": reg.voltaje_fase_1,
-            "Voltaje Fase 2": reg.voltaje_fase_2,
-            "Voltaje Fase 3": reg.voltaje_fase_3,
-            "Corriente Fase 1": reg.corriente_fase_1,
-            "Corriente Fase 2": reg.corriente_fase_2,
-            "Corriente Fase 3": reg.corriente_fase_3,
-            "Potencia Activa Total": reg.potencia_activa,
-            "Potencia Reactiva Total": reg.potencia_reactiva,
-            "Potencia Aparente Total": reg.potencia_aparente,
-            "Energía Activa Total": reg.energia_activa,
-            "Energía Reactiva Total": reg.energia_reactiva,
-        }
-        for reg in registros
-    ])
+    df = pd.DataFrame([{
+        "Fecha": r.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        "Voltaje Fase 1 (V)": r.voltaje_fase_1,
+        "Voltaje Fase 2 (V)": r.voltaje_fase_2,
+        "Voltaje Fase 3 (V)": r.voltaje_fase_3,
+        "Corriente Fase 1 (A)": r.corriente_fase_1,
+        "Corriente Fase 2 (A)": r.corriente_fase_2,
+        "Corriente Fase 3 (A)": r.corriente_fase_3,
+        "Energía Activa Total (kWh)": r.energia_activa,
+        "Energía Reactiva Total (kVARh)": r.energia_reactiva
+    } for r in registros])
 
-    response = HttpResponse(content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="historico_energia.xlsx"'
-    df.to_excel(response, index=False)
+    # Crear libro de trabajo
+    wb = Workbook()
+    resumen_ws = wb.active
+    resumen_ws.title = "Resumen"
+    historico_ws = wb.create_sheet("Histórico de Datos")
+
+    # --- Hoja de Resumen ---
+    resumen_ws.merge_cells("A1:E1")
+    resumen_ws["A1"] = "🔌 Resumen de Consumo Energético"
+    resumen_ws["A1"].font = Font(size=14, bold=True)
+    resumen_ws["A1"].alignment = Alignment(horizontal="center")
+
+    def promedio(col):
+        return df[col].dropna().mean()
+
+    def ultimo(col):
+        return df[col].dropna().iloc[-1] if not df[col].dropna().empty else 0
+
+    resumen_ws.append(["Promedio Voltaje Fase 1 (V)", promedio("Voltaje Fase 1 (V)")])
+    resumen_ws.append(["Promedio Voltaje Fase 2 (V)", promedio("Voltaje Fase 2 (V)")])
+    resumen_ws.append(["Promedio Voltaje Fase 3 (V)", promedio("Voltaje Fase 3 (V)")])
+    resumen_ws.append([])
+    resumen_ws.append(["Última Energía Activa Total (kWh)", ultimo("Energía Activa Total (kWh)")])
+    resumen_ws.append(["Última Energía Reactiva Total (kVARh)", ultimo("Energía Reactiva Total (kVARh)")])
+
+    # Estilo para toda la hoja
+    for row in resumen_ws.iter_rows(min_row=2, max_col=2):
+        for cell in row:
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal="left")
+
+    # --- Hoja de Histórico de Datos ---
+    for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), 1):
+        historico_ws.append(row)
+        if r_idx == 1:
+            for cell in historico_ws[r_idx]:
+                cell.font = Font(bold=True)
+                cell.fill = PatternFill(start_color="d1ecf1", fill_type="solid")
+
+    # Preparar respuesta HTTP
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="resumen_energia.xlsx"'
+    wb.save(response)
     return response
