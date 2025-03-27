@@ -93,6 +93,7 @@ def obtener_datos_modbus(request):
 def historico(request):
     return render(request, 'historico.html')
 
+
 def obtener_historico(request):
     rango = request.GET.get('rango', 'diario')
     fecha_hoy = datetime.now()
